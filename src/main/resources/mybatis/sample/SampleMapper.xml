@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wh.pjtr.ngs.batch.sample.mapper.SampleMapper">
+
+	<insert id="insertSample">
+	<![CDATA[
+		/* insertSample1 */
+		INSERT INTO sample1
+		SELECT id, name FROM sample
+	]]>
+	</insert>
+
+</mapper>

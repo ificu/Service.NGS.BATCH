@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wh.pjtr.ngs.batch.admin.mapper.AdminMapper">
+
+	<select id="batchJobInstance" resultType="map">
+		/* batchJobInstance */
+		SELECT JOB_NAME, COUNT(JOB_NAME) AS COUNT
+		  FROM BATCH_JOB_INSTANCE
+		 GROUP BY JOB_NAME
+		 ORDER BY JOB_NAME DESC
+	</select>
+
+	<select id="lastExecuteJobResult" parameterType="string" resultType="com.wh.pjtr.ngs.batch.admin.vo.JobVO">
+		/* lastExecuteJobResult */
+   		SELECT
+            I.JOB_NAME,
+            E.JOB_EXECUTION_ID,
+            (SELECT COUNT(T.JOB_NAME) FROM BATCH_JOB_INSTANCE T WHERE T.JOB_NAME = I.JOB_NAME GROUP BY T.JOB_NAME ) COUNT,
+          	STR_TO_DATE(E.START_TIME, '%Y-%m-%d %H:%i:%s') START_TIME,
+            STR_TO_DATE(E.END_TIME, '%Y-%m-%d %H:%i:%s') END_TIME,
+            (E.END_TIME - E.START_TIME) ELAPSE_TIME,
+            E.STATUS,
+            E.EXIT_CODE,
+            E.EXIT_MESSAGE,
+            STR_TO_DATE(E.CREATE_TIME, '%Y-%m-%d %H:%i:%s') CREATE_TIME,
+            STR_TO_DATE(E.LAST_UPDATED, '%Y-%m-%d %H:%i:%s') LAST_UPDATED,
+            E.VERSION,
+            I.JOB_INSTANCE_ID
+        FROM
+            BATCH_JOB_EXECUTION E,
+            BATCH_JOB_INSTANCE I
+        WHERE
+            E.JOB_INSTANCE_ID = I.JOB_INSTANCE_ID
+            AND I.JOB_NAME = #{jobName}
+	  	LIMIT 0, 1
+	</select>
+
+	<select id="executeJobResultList" parameterType="string" resultType="com.wh.pjtr.ngs.batch.admin.vo.JobVO">
+		/* executeJobResultList */
+        SELECT
+            I.JOB_NAME,
+            E.JOB_EXECUTION_ID,
+            (SELECT COUNT(T.JOB_NAME) FROM BATCH_JOB_INSTANCE T WHERE T.JOB_NAME = I.JOB_NAME GROUP BY T.JOB_NAME ) COUNT,
+          	STR_TO_DATE(E.START_TIME, '%Y-%m-%d %H:%i:%s') START_TIME,
+            STR_TO_DATE(E.END_TIME, '%Y-%m-%d %H:%i:%s') END_TIME,
+            (E.END_TIME - E.START_TIME) ELAPSE_TIME,
+            E.STATUS,
+            E.EXIT_CODE,
+            E.EXIT_MESSAGE,
+            STR_TO_DATE(E.CREATE_TIME, '%Y-%m-%d %H:%i:%s') CREATE_TIME,
+            STR_TO_DATE(E.LAST_UPDATED, '%Y-%m-%d %H:%i:%s') LAST_UPDATED,
+            E.VERSION,
+            I.JOB_INSTANCE_ID,
+            COUNT(E.JOB_EXECUTION_ID) OVER() TOTAL_COUNT
+        FROM
+            BATCH_JOB_EXECUTION E,
+            BATCH_JOB_INSTANCE I
+        WHERE
+            E.JOB_INSTANCE_ID = I.JOB_INSTANCE_ID
+            AND I.JOB_NAME = #{jobName}
+	  	ORDER BY E.JOB_EXECUTION_ID DESC
+	</select>
+
+	<select id="executeStepResultList" parameterType="string" resultType="com.wh.pjtr.ngs.batch.admin.vo.StepVO">
+	<![CDATA[
+		/* executeStepResultList */
+		SELECT
+        	 STEP_EXECUTION_ID
+		    ,VERSION
+		    ,STEP_NAME
+		    ,JOB_EXECUTION_ID
+		    ,STR_TO_DATE(START_TIME, '%Y-%m-%d %H:%i:%s') START_TIME
+		    ,STR_TO_DATE(END_TIME, '%Y-%m-%d %H:%i:%s') END_TIME
+		    ,(END_TIME - START_TIME) ELAPSE_TIME
+		    ,STATUS
+		    ,COMMIT_COUNT
+		    ,READ_COUNT
+		    ,FILTER_COUNT
+		    ,WRITE_COUNT
+		    ,READ_SKIP_COUNT
+		    ,WRITE_SKIP_COUNT
+		    ,PROCESS_SKIP_COUNT
+		    ,ROLLBACK_COUNT
+		    ,EXIT_CODE
+		    ,EXIT_MESSAGE
+		    ,STR_TO_DATE(LAST_UPDATED, '%Y-%m-%d %H:%i:%s') LAST_UPDATED
+		    ,COUNT(JOB_EXECUTION_ID) OVER() TOTAL_COUNT
+	    FROM
+	    	BATCH_STEP_EXECUTION
+	    WHERE
+	    	JOB_EXECUTION_ID = #{jobExecutionId}
+	    ORDER BY STEP_EXECUTION_ID DESC
+    ]]>
+	</select>
+
+</mapper>
